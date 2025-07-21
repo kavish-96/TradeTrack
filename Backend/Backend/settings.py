@@ -126,13 +126,20 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+
 load_dotenv()
+ALPHA_VANTAGE_API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY')
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = True
 ALLOWED_HOSTS = []
 CORS_ALLOWED_ORIGINS = [os.getenv("ALLOWED_ORIGIN")]
+
+AUTH_USER_MODEL = 'core.User'
+ROOT_URLCONF = 'Backend.urls'
+
 
 # 1️⃣ Installed apps
 INSTALLED_APPS = [
@@ -144,6 +151,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
+    'core',
+    'tradetrack',
 ]
 
 # 2️⃣ Middleware (add corsheaders at top)
@@ -158,25 +167,51 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [],  # You can add custom template dirs here later if needed
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',  # Required by admin
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
+
 # 3️⃣ Database – MongoDB via djongo
 DATABASES = {
-    "default": {
-        "ENGINE": "djongo",
-        "CLIENT": {
-            "host": os.getenv("MONGODB_URI"),
-            "retryWrites": True,
-        },
+    'default': {
+        'ENGINE': 'djongo',
+        'NAME': 'TradeTrack',  # or whatever DB name you prefer
+        'ENFORCE_SCHEMA': False,
+        'CLIENT': {
+            'host': 'mongodb+srv://kavishpatel962005:s9G4BiNGkzj4LIEv@tradetrack.jkguztl.mongodb.net/TradeTrack?retryWrites=true&w=majority',
+            'authMechanism': 'SCRAM-SHA-1',
+        }
     }
 }
+# mongodb+srv://kavishpatel962005:s9G4BiNGkzj4LIEv@tradetrack.jkguztl.mongodb.net/
+
 
 # 4️⃣ REST & JWT defaults
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
     ),
-    "DEFAULT_PERMISSION_CLASSES": (
-        "rest_framework.permissions.IsAuthenticated",
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
 }
+
+
+CORS_ALLOWED_ORIGINS = [
+    os.getenv("ALLOWED_ORIGIN", "http://localhost:3000"),
+]
 
 STATIC_URL = "static/"
