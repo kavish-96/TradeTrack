@@ -196,7 +196,6 @@ DATABASES = {
         }
     }
 }
-# mongodb+srv://kavishpatel962005:s9G4BiNGkzj4LIEv@tradetrack.jkguztl.mongodb.net/
 
 
 # 4️⃣ REST & JWT defaults
