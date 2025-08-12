@@ -1,52 +1,65 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
-import Dashboard from './pages/Dashboard';
-import Watchlist from './pages/Watchlist';
-import Portfolio from './pages/Portfolio';
-import HistoricalData from './pages/HistoricalData';
-import PrivateRoute from './components/PrivateRoute';
-import Navbar from './components/Navbar';
-import SignupPage from './pages/SignupPage';
-
-
-const AppLayout = ({ children }) => {
-  const location = useLocation();
-  const hideNavbar = location.pathname === '/';
-
-  return (
-    <>
-      {!hideNavbar && <Navbar />}
-      {children}
-    </>
-  );
-};
+import React, { useState } from 'react';
+import Navigation from './components/Navigation';
+import Login from './components/auth/Login';
+import Signup from './components/auth/Signup';
+import Dashboard from './components/Dashboard';
+import Watchlist from './components/Watchlist';
+import Portfolio from './components/Portfolio';
+import TransactionHistory from './components/TransactionHistory';
+import Charts from './components/Charts';
+import News from './components/News';
 
 function App() {
-  return (
-    <Router>
-      <AppLayout>
-        <Routes>
-          <Route path="/" element={<Navbar />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+  const [currentPage, setCurrentPage] = useState('login');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-          <Route
-            path="/watchlist"
-            element={<PrivateRoute><Watchlist /></PrivateRoute>}
-          />
-          <Route
-            path="/portfolio"
-            element={<PrivateRoute><Portfolio /></PrivateRoute>}
-          />
-          <Route
-            path="/historical"
-            element={<PrivateRoute><HistoricalData /></PrivateRoute>}
-          />
-        </Routes>
-      </AppLayout>
-    </Router>
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+    setCurrentPage('dashboard');
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setCurrentPage('login');
+  };
+
+  const renderPage = () => {
+    if (!isAuthenticated) {
+      switch (currentPage) {
+        case 'signup':
+          return <Signup onSwitchToLogin={() => setCurrentPage('login')} />;
+        default:
+          return <Login onLogin={handleLogin} onSwitchToSignup={() => setCurrentPage('signup')} />;
+      }
+    }
+
+    switch (currentPage) {
+      case 'watchlist':
+        return <Watchlist />;
+      case 'portfolio':
+        return <Portfolio />;
+      case 'transactions':
+        return <TransactionHistory />;
+      case 'charts':
+        return <Charts />;
+      case 'news':
+        return <News />;
+      default:
+        return <Dashboard />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {isAuthenticated && (
+        <Navigation 
+          currentPage={currentPage} 
+          setCurrentPage={setCurrentPage}
+          onLogout={handleLogout}
+        />
+      )}
+      {renderPage()}
+    </div>
   );
 }
 
