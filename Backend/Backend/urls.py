@@ -17,24 +17,51 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
-
-
-def home(request):
-    return JsonResponse({"message": "Welcome to TradeTrack API Backend 🚀"})
-
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
 
+def api_status(request):
+    """Simple root view to show API status"""
+    return JsonResponse({
+        'status': 'TradeTrack API is running!',
+        'endpoints': {
+            'auth': {
+                'login': '/api/auth/token/',
+                'refresh': '/api/auth/token/refresh/',
+            },
+            'accounts': {
+                'register': '/api/accounts/register/',
+                'profile': '/api/accounts/me/',
+            },
+            'market': {
+                'quote': '/api/market/quote/?symbol=AAPL',
+                'history': '/api/market/history/?symbol=AAPL&interval=daily',
+            },
+            'portfolio': {
+                'positions': '/api/portfolio/positions/',
+            },
+            'watchlist': {
+                'items': '/api/watchlist/',
+            },
+            'trades': {
+                'transactions': '/api/trades/',
+            },
+        },
+        'docs': 'Use these endpoints with your frontend. All except auth/market require JWT token in Authorization header.',
+    })
+
 urlpatterns = [
-    path('', home),
+    path('', api_status, name='api_status'),
     path('admin/', admin.site.urls),
-    path('api/', include('tradetrack.urls')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path("api/", include("tradetrack.urls")),
-    
-
+    # Auth (JWT)
+    path('api/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # App routes
+    path('api/accounts/', include('accounts.urls')),
+    path('api/portfolio/', include('portfolio.urls')),
+    path('api/watchlist/', include('watchlist.urls')),
+    path('api/trades/', include('trades.urls')),
+    path('api/market/', include('market.urls')),
 ]
-
