@@ -37,7 +37,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="D:\SEM-4 IP\TradeTrack\backend\.venv"
+VIRTUAL_ENV="D:\IPE, PROJECT SEM_4\SEM-4 IP\TradeTrack\Backend\.venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

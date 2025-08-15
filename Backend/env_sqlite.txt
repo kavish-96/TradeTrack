@@ -1,0 +1,9 @@
+# Copy this content to your .env file (remove MongoDB settings)
+DEBUG=true
+SECRET_KEY=replace-this-in-production
+
+# Frontend dev origin (Vite default)
+CORS_ALLOWED_ORIGINS=http://localhost:5173
+
+# Alpha Vantage API
+ALPHA_VANTAGE_API_KEY=H64UIM8J62CTF61U 
