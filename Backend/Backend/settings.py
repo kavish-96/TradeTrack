@@ -161,3 +161,11 @@ CSRF_TRUSTED_ORIGINS = [origin.replace('http://', 'https://') if origin.startswi
 
 # Alpha Vantage API
 ALPHA_VANTAGE_API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY', '')
+
+# Email configuration (console by default)
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'no-reply@tradetrack.local')
+
+# Force console backend in development to avoid SMTP issues
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

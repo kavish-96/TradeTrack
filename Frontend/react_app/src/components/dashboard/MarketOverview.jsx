@@ -1,29 +1,81 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { getSimpleQuoteQueued } from '../../lib/marketQueue';
 
 const MarketOverview = () => {
-  const indices = [
-    {
-      name: 'Nifty 50',
-      value: '19,745.20',
-      change: '+145.30',
-      changePercent: '+0.74%',
-      isPositive: true
-    },
-    {
-      name: 'NASDAQ',
-      value: '15,235.71',
-      change: '-42.18',
-      changePercent: '-0.28%',
-      isPositive: false
-    },
-    {
-      name: 'S&P 500',
-      value: '4,547.38',
-      change: '+12.45',
-      changePercent: '+0.27%',
-      isPositive: true
-    }
+  const [indices, setIndices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Market indices symbols
+  const marketIndices = [
+    { symbol: '^NSEI', name: 'Nifty 50' },      // Nifty 50
+    { symbol: '^IXIC', name: 'NASDAQ' },        // NASDAQ
+    { symbol: '^GSPC', name: 'S&P 500' }        // S&P 500
   ];
+
+  useEffect(() => {
+    const fetchMarketData = async () => {
+      try {
+        const marketData = [];
+        
+        for (const index of marketIndices) {
+          try {
+            const quote = await getSimpleQuoteQueued(index.symbol);
+            if (quote && quote.price) {
+              const currentPrice = parseFloat(quote.price);
+              const previousClose = parseFloat(quote.previous_close || 0);
+              const change = currentPrice - previousClose;
+              const changePercent = previousClose ? (change / previousClose) * 100 : 0;
+              
+              marketData.push({
+                name: index.name,
+                value: currentPrice.toFixed(2),
+                change: change >= 0 ? `+${change.toFixed(2)}` : change.toFixed(2),
+                changePercent: change >= 0 ? `+${changePercent.toFixed(2)}%` : `${changePercent.toFixed(2)}%`,
+                isPositive: change >= 0
+              });
+            }
+          } catch (error) {
+            console.error(`Error fetching ${index.name}:`, error);
+            // Add fallback data if API fails
+            marketData.push({
+              name: index.name,
+              value: '--',
+              change: '--',
+              changePercent: '--',
+              isPositive: null
+            });
+          }
+        }
+        
+        setIndices(marketData);
+      } catch (error) {
+        console.error('Error fetching market data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMarketData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="card p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Market Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="animate-pulse">
+                <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded mb-1"></div>
+                <div className="h-4 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="card p-6">
@@ -34,9 +86,12 @@ const MarketOverview = () => {
             <h3 className="text-sm font-medium text-gray-600 mb-2">{index.name}</h3>
             <div className="text-2xl font-bold text-gray-900 mb-1">{index.value}</div>
             <div className={`text-sm font-medium ${
+              index.isPositive === null ? 'text-gray-500' : 
               index.isPositive ? 'text-success-600' : 'text-error-600'
             }`}>
-              <span className="mr-1">{index.isPositive ? '↗' : '↘'}</span>
+              {index.isPositive !== null && (
+                <span className="mr-1">{index.isPositive ? '↗' : '↘'}</span>
+              )}
               {index.change} ({index.changePercent})
             </div>
           </div>

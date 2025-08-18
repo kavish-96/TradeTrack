@@ -35,22 +35,19 @@ const Navigation = ({ currentPage, setCurrentPage, onLogout }) => {
               ))}
             </div>
           </div>
-          
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 text-sm text-gray-600">
               <div className="w-2 h-2 bg-success-500 rounded-full animate-pulse"></div>
               <span>Market Open</span>
             </div>
-            <button
-              onClick={onLogout}
-              className="text-gray-500 hover:text-gray-700 px-3 py-2 text-sm font-medium transition duration-200"
-            >
-              Logout
-            </button>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 text-gray-600">👤</div>
+              <button onClick={onLogout} className="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm font-medium transition duration-200">
+                Logout
+              </button>
+            </div>
           </div>
         </div>
-        
-        {/* Mobile Menu */}
         <div className="md:hidden pb-3 pt-2 space-y-1">
           <div className="grid grid-cols-3 gap-2">
             {navItems.map((item) => (
