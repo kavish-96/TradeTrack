@@ -12,3 +12,6 @@ yfinance
 matplotlib
 pandas
 numpy
+
+plotly
+kaleido

@@ -306,6 +306,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { apiGet, apiPost } from '../lib/api';
+import Plot from "react-plotly.js";
 
 const Charts = () => {
   const [selectedStock, setSelectedStock] = useState('');
@@ -319,45 +320,71 @@ const Charts = () => {
   const [modelExists, setModelExists] = useState(false);
   const [retrainLoading, setRetrainLoading] = useState(false);
 
-  // fetch historical data
+
+  // fetch historical candlestick chart
   useEffect(() => {
     const load = async () => {
-      if (!selectedStock) return;
+      if (!selectedStock) {
+        setHistorical(null);
+        setError('');
+        return;
+      }
       setLoading(true);
       setError('');
-      console.log('📡 [Historical] Fetching for:', selectedStock);
       try {
-        const data = await apiGet(`/api/predictor/historical/?symbol=${encodeURIComponent(selectedStock)}`);
-        console.log('✅ [Historical] Raw API data:', data);
-        if (Array.isArray(data) && data.length > 0) {
-          const formatted = {
-            dates: data.map(item => item.date),
-            prices: data.map(item => Number(item.close_price)),
-          };
-          console.log('🔄 [Historical] Formatted:', formatted);
-          setHistorical(formatted);
+        const res = await apiGet(`/api/predictor/historical/?symbol=${encodeURIComponent(selectedStock)}`);
+        if (Array.isArray(res) && res.length > 0) {
+          setHistorical(res);
         } else {
-          console.warn('⚠️ [Historical] No data array or empty.');
           setError('No historical data found.');
           setHistorical(null);
         }
       } catch (e) {
-        console.error('❌ [Historical] Failed to load historical data:', e);
         setError('Failed to load historical data');
         setHistorical(null);
       } finally {
         setLoading(false);
       }
     };
-
-    if (!selectedStock) {
-      setHistorical(null);
-      setPrediction(null);
-      setError('');
-      return;
-    }
     load();
   }, [selectedStock]);
+
+
+  // --- CHART RENDERERS ---
+  const renderHistoricalChart = (data) => {
+    if (!data || data.length === 0) {
+      return (
+        <div className="h-64 bg-gray-50 rounded-lg p-4 flex items-center justify-center text-gray-500">
+          {loading ? 'Loading...' : (error || 'No data')}
+        </div>
+      );
+    }
+
+    return (
+      <Plot
+        data={[
+          {
+            x: data.map(row => row.Date),
+            open: data.map(row => row.Open),
+            high: data.map(row => row.High),
+            low: data.map(row => row.Low),
+            close: data.map(row => row.Close),
+            type: "candlestick",
+            increasing: { line: { color: "green" } },
+            decreasing: { line: { color: "red" } },
+          },
+        ]}
+        layout={{
+          width: 1200,
+          height: 700,
+          title: `${selectedStock} - Last 2 months`,
+          xaxis: { title: "Date", rangeslider: { visible: false }, },
+          yaxis: { title: "Price" },
+          plot_bgcolor: "white",
+        }}
+      />
+    );
+  };
 
   // check model existence
   useEffect(() => {
@@ -429,37 +456,7 @@ const Charts = () => {
     }
   };
 
-  // --- CHART RENDERERS ---
-  const renderChart = (data, color = 'blue') => {
-    if (!data) {
-      return (
-        <div className="h-64 bg-gray-50 rounded-lg p-4 flex items-center justify-center text-gray-500">
-          {loading ? 'Loading...' : (error || 'No data')}
-        </div>
-      );
-    }
-    const max = Math.max(...data.prices);
-    const min = Math.min(...data.prices);
-    const range = max - min || 1;
-    return (
-      <div className="h-64 bg-gray-50 rounded-lg p-4 flex items-end space-x-2 overflow-x-auto">
-        {data.prices.map((price, index) => {
-          const height = ((price - min) / range) * 200 + 20;
-          return (
-            <div key={index} className="flex-1 flex flex-col items-center">
-              <div
-                className={`bg-${color}-500 rounded-t transition-all duration-300 hover:bg-${color}-600`}
-                style={{ height: `${height}px`, width: '100%' }}
-              ></div>
-              <div className="text-xs text-gray-600 mt-2 transform -rotate-45 origin-left">
-                {data.dates[index]}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
+  
 
   // SAFE line chart for predictions
   const renderLineChart = (data, color = 'blue') => {
@@ -518,14 +515,14 @@ const Charts = () => {
   };
 
   const getCurrentPrice = () => {
-    if (!historical || historical.prices.length === 0) return 0;
-    return historical.prices[historical.prices.length - 1].toFixed(2);
+    if (!historical || historical.length === 0) return 0;
+    return historical[historical.length - 1].Close.toFixed(2);
   };
 
   const getChange = () => {
-    if (!historical || historical.prices.length < 2) return 0;
-    const p = historical.prices;
-    return (p[p.length - 1] - p[p.length - 2]).toFixed(2);
+    if (!historical || historical.length < 2) return 0;
+    const p = historical;
+    return (p[p.length - 1].Close - p[p.length - 2].Close).toFixed(2);
   };
 
   const change = parseFloat(getChange());
@@ -586,93 +583,64 @@ const Charts = () => {
         )}
       </div>
 
-      {/* Tabs */}
+      {/* Historical Data Card */}
       <div className="card mb-8 bg-white shadow rounded-lg">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8 px-6">
-            <button
-              onClick={() => setActiveTab('historical')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'historical'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Historical Data
-            </button>
-            <button
-              onClick={() => setActiveTab('prediction')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'prediction'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              Price Prediction
-            </button>
-          </nav>
-        </div>
         <div className="p-6">
-          {activeTab === 'historical' ? (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {selectedStock} - Historical Closing Prices
-              </h3>
-              {renderChart(historical)}
-              <div className="mt-4 text-sm text-gray-600">* Historical data fetched via Yahoo Finance</div>
-            </div>
-          ) : (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {selectedStock ? `${selectedStock} - Price Prediction` : 'Price Prediction'}
-              </h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {selectedStock} - Historical Closing Prices
+          </h3>
+          {renderHistoricalChart(historical)}
+          <div className="mt-4 text-sm text-gray-600">* Historical data fetched via Yahoo Finance</div>
+        </div>
+      </div>
 
-              {/* Chart container always present */}
-              <div className="h-64 bg-gray-50 rounded-lg mb-4 flex items-center justify-center">
-                {predictionLoading ? (
-                  <div className="text-gray-500">Loading prediction...</div>
-                ) : prediction && prediction.dates ? (
-                  renderLineChart(prediction, 'blue')
-                ) : (
-                  <div className="text-gray-400">No data yet</div>
-                )}
-              </div>
-
-              {selectedStock && (
-                <>
-                  {!prediction && !predictionLoading && (
-                    <button
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium"
-                      onClick={() => {
-                        console.log('▶️ [UI] Load Prediction clicked');
-                        loadPrediction();
-                      }}
-                    >
-                      Load Prediction
-                    </button>
-                  )}
-                  {modelExists && (
-                    <button
-                      className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium"
-                      onClick={handleRetrain}
-                      disabled={retrainLoading}
-                    >
-                      {retrainLoading ? 'Retraining...' : 'Retrain Model'}
-                    </button>
-                  )}
-                </>
+      {/* Price Prediction Card */}
+      <div className="card mb-8 bg-white shadow rounded-lg">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {selectedStock ? `${selectedStock} - Price Prediction` : 'Price Prediction'}
+          </h3>
+          <div className="h-64 bg-gray-50 rounded-lg mb-4 flex items-center justify-center">
+            {predictionLoading ? (
+              <div className="text-gray-500">Loading prediction...</div>
+            ) : prediction && prediction.dates ? (
+              renderLineChart(prediction, 'blue')
+            ) : (
+              <div className="text-gray-400">No data yet</div>
+            )}
+          </div>
+          {selectedStock && (
+            <>
+              {!prediction && !predictionLoading && (
+                <button
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium"
+                  onClick={() => {
+                    console.log('▶️ [UI] Load Prediction clicked');
+                    loadPrediction();
+                  }}
+                >
+                  Load Prediction
+                </button>
               )}
-
-              {!selectedStock && (
-                <div className="h-64 flex items-center justify-center text-gray-500">
-                  Enter a stock symbol above and click Analyze to view predictions.
-                </div>
+              {modelExists && (
+                <button
+                  className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg font-medium"
+                  onClick={handleRetrain}
+                  disabled={retrainLoading}
+                >
+                  {retrainLoading ? 'Retraining...' : 'Retrain Model'}
+                </button>
               )}
-              <div className="mt-4 text-sm text-gray-600">
-                * Predictions powered by LSTM deep learning model and Yahoo Finance data
-              </div>
+            </>
+          )}
+          {!selectedStock && (
+            <div className="h-64 flex items-center justify-center text-gray-500">
+              Enter a stock symbol above and click Analyze to view predictions.
             </div>
           )}
+          <div className="mt-4 text-sm text-gray-600">
+            * Predictions powered by LSTM deep learning model and Yahoo Finance data
+          </div>
         </div>
       </div>
     </div>

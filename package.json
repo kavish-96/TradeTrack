@@ -16,6 +16,8 @@
     "tailwindcss": "^3.3.5"
   },
   "dependencies": {
+    "plotly.js": "^3.1.0",
+    "react-plotly.js": "^2.6.0",
     "recharts": "^3.1.2",
     "requests": "^0.3.0"
   }

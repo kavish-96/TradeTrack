@@ -165,45 +165,45 @@ class ModelExistsView(APIView):
         return Response({"exists": exists})
 
 
-class HistoricalDataView(APIView):
-    def get(self, request):
-        symbol = request.query_params.get("symbol")
-        if not symbol:
-            return Response({"error": "Symbol required"}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            df = yf.download(symbol, period="1mo", interval="1d")  # 30 days
-            if df.empty:
-                return Response({"error": "No data found"}, status=status.HTTP_404_NOT_FOUND)
+# class HistoricalDataView(APIView):
+#     def get(self, request):
+#         symbol = request.query_params.get("symbol")
+#         if not symbol:
+#             return Response({"error": "Symbol required"}, status=status.HTTP_400_BAD_REQUEST)
+#         try:
+#             df = yf.download(symbol, period="1mo", interval="1d")  # 30 days
+#             if df.empty:
+#                 return Response({"error": "No data found"}, status=status.HTTP_404_NOT_FOUND)
 
-            # Ensure Date is a column
-            if not isinstance(df.index, pd.DatetimeIndex):
-                return Response({"error": "Unexpected data format"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#             # Ensure Date is a column
+#             if not isinstance(df.index, pd.DatetimeIndex):
+#                 return Response({"error": "Unexpected data format"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            df = df.reset_index()  # brings Date out of index
+#             df = df.reset_index()  # brings Date out of index
 
-            data = []
-            for _, row in df.iterrows():
-                # ✅ Clean date
-                date_val = row["Date"]
-                if hasattr(date_val, "strftime"):
-                    date_val = date_val.strftime("%Y-%m-%d")
-                else:
-                    date_val = str(date_val)
+#             data = []
+#             for _, row in df.iterrows():
+#                 # ✅ Clean date
+#                 date_val = row["Date"]
+#                 if hasattr(date_val, "strftime"):
+#                     date_val = date_val.strftime("%Y-%m-%d")
+#                 else:
+#                     date_val = str(date_val)
 
-                # ✅ Clean Close value
-                close_val = row["Close"]
-                if isinstance(close_val, (pd.Series, pd.DataFrame)):
-                    close_val = float(close_val.iloc[0])
-                else:
-                    close_val = float(close_val)
+#                 # ✅ Clean Close value
+#                 close_val = row["Close"]
+#                 if isinstance(close_val, (pd.Series, pd.DataFrame)):
+#                     close_val = float(close_val.iloc[0])
+#                 else:
+#                     close_val = float(close_val)
 
-                data.append({
-                    "date": date_val,
-                    "close_price": round(close_val, 2)
-                })
+#                 data.append({
+#                     "date": date_val,
+#                     "close_price": round(close_val, 2)
+#                 })
 
-            return Response(data)
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#             return Response(data)
+#         except Exception as e:
+#             import traceback
+#             traceback.print_exc()
+#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
