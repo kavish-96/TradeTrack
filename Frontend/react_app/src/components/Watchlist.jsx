@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { apiGet, apiPost, apiDelete } from '../lib/api';
 import { getSimpleQuoteQueued, getOverviewQueued } from '../lib/marketQueue';
+import { cacheGet, cacheSet } from '../lib/sessionCache';
 
 const Watchlist = () => {
   const [items, setItems] = useState([]);
@@ -28,22 +29,27 @@ const Watchlist = () => {
 
   useEffect(() => { load(); }, []);
 
+  // Restore last known prices from session cache on mount
   useEffect(() => {
-    const fetchPrices = async () => {
-      const map = {};
-      for (const it of items) {
-        try {
-          const q = await getSimpleQuoteQueued(it.symbol);
-          map[it.symbol] = {
-            price: q.price ? parseFloat(q.price) : null,
-            change: q.change ? parseFloat(q.change) : null,
-          };
-        } catch (_) {}
-      }
-      setPrices(map);
-    };
-    if (items.length) fetchPrices();
-  }, [items]);
+    const cached = cacheGet('watchlist:prices');
+    if (cached) setPrices(cached);
+  }, []);
+
+  // Manual per-stock price load to reduce API requests
+  const loadPrice = async (symbol) => {
+    try {
+      const q = await getSimpleQuoteQueued(symbol);
+      const next = {
+        ...prices,
+        [symbol]: {
+          price: q.price ? parseFloat(q.price) : null,
+          change: q.change ? parseFloat(q.change) : null,
+        },
+      };
+      setPrices(next);
+      cacheSet('watchlist:prices', next);
+    } catch (_) {}
+  };
 
   const removeStock = async (id) => {
     try {
@@ -203,6 +209,7 @@ const Watchlist = () => {
                   </div>
                 </div>
                 <div className="flex space-x-2">
+                  <button className="btn-secondary flex-1 py-2 text-sm" onClick={() => loadPrice(stock.symbol)}>Load Price</button>
                   <button className="btn-secondary flex-1 py-2 text-sm" onClick={() => viewDetails(stock.symbol)}>View Details</button>
                   <button className="btn-primary flex-1 py-2 text-sm" onClick={() => addToPortfolio(stock.symbol, stock.name)}>Add to Portfolio</button>
                 </div>

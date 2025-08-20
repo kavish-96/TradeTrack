@@ -1,64 +1,61 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { apiGet } from '../../lib/api';
 import { getSimpleQuoteQueued } from '../../lib/marketQueue';
+import { cacheGet, cacheSet } from '../../lib/sessionCache';
 
 const PortfolioSummary = () => {
   const [positions, setPositions] = useState([]);
   const [prices, setPrices] = useState({});
   const [todayPerformance, setTodayPerformance] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const loadPortfolioData = async () => {
-      try {
-        // Fetch portfolio positions
-        const portfolioResponse = await apiGet('/api/portfolio/positions/');
-        setPositions(portfolioResponse);
-
-        // Fetch current prices for all positions
-        const priceMap = {};
-        for (const position of portfolioResponse) {
-          try {
-            const quote = await getSimpleQuoteQueued(position.symbol);
-            if (quote && quote.price) {
-              priceMap[position.symbol] = parseFloat(quote.price);
-            }
-          } catch (error) {
-            console.error(`Error fetching price for ${position.symbol}:`, error);
+  const refreshSummary = useCallback(async () => {
+    setLoading(true);
+    try {
+      const portfolioResponse = await apiGet('/api/portfolio/positions/');
+      setPositions(portfolioResponse);
+      const priceMap = {};
+      for (const position of portfolioResponse) {
+        try {
+          const quote = await getSimpleQuoteQueued(position.symbol);
+          if (quote && quote.price) {
+            priceMap[position.symbol] = parseFloat(quote.price);
           }
+        } catch (error) {
+          console.error(`Error fetching price for ${position.symbol}:`, error);
         }
-        setPrices(priceMap);
-
-        // Fetch today's transactions (last 24 hours)
-        const transactionsResponse = await apiGet('/api/trades/');
-        const now = new Date();
-        const last24Hours = new Date(now.getTime() - (24 * 60 * 60 * 1000));
-        
-        const todayTransactions = transactionsResponse.filter(transaction => {
-          const transactionDate = new Date(transaction.created_at);
-          return transactionDate >= last24Hours;
-        });
-
-        // Calculate net flow for today
-        let netFlow = 0;
-        todayTransactions.forEach(transaction => {
-          if (transaction.action === 'BUY') {
-            netFlow -= parseFloat(transaction.total);
-          } else if (transaction.action === 'SELL') {
-            netFlow += parseFloat(transaction.total);
-          }
-        });
-        
-        setTodayPerformance(netFlow);
-
-      } catch (error) {
-        console.error('Error loading portfolio data:', error);
-      } finally {
-        setLoading(false);
       }
-    };
+      setPrices(priceMap);
+      cacheSet('dashboard:portfolio:positions', portfolioResponse);
+      cacheSet('dashboard:portfolio:prices', priceMap);
 
-    loadPortfolioData();
+      // Today performance from trades in last 24h
+      const transactionsResponse = await apiGet('/api/trades/');
+      const now = new Date();
+      const last24Hours = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+      const todayTransactions = transactionsResponse.filter(t => new Date(t.created_at) >= last24Hours);
+      let netFlow = 0;
+      todayTransactions.forEach(t => {
+        if (t.action === 'BUY') netFlow -= parseFloat(t.total);
+        else if (t.action === 'SELL') netFlow += parseFloat(t.total);
+      });
+      setTodayPerformance(netFlow);
+      cacheSet('dashboard:portfolio:todayPerformance', netFlow);
+    } catch (error) {
+      console.error('Error loading portfolio data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Load from cache on mount; no auto-fetch
+  useEffect(() => {
+    const cachedPositions = cacheGet('dashboard:portfolio:positions');
+    const cachedPrices = cacheGet('dashboard:portfolio:prices');
+    const cachedPerf = cacheGet('dashboard:portfolio:todayPerformance');
+    if (cachedPositions) setPositions(cachedPositions);
+    if (cachedPrices) setPrices(cachedPrices);
+    if (typeof cachedPerf === 'number') setTodayPerformance(cachedPerf);
   }, []);
 
   // Calculate portfolio metrics
@@ -94,45 +91,15 @@ const PortfolioSummary = () => {
     .sort((a, b) => b.value - a.value)
     .slice(0, 3);
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="card p-6">
-            <div className="animate-pulse">
-              <div className="h-6 bg-gray-200 rounded mb-4"></div>
-              <div className="h-10 bg-gray-200 rounded mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded"></div>
-            </div>
-          </div>
-          <div className="card p-6">
-            <div className="animate-pulse">
-              <div className="h-6 bg-gray-200 rounded mb-4"></div>
-              <div className="h-10 bg-gray-200 rounded mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded"></div>
-            </div>
-          </div>
-        </div>
-        <div className="card p-6">
-          <div className="animate-pulse">
-            <div className="h-6 bg-gray-200 rounded mb-4"></div>
-            <div className="space-y-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-16 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Portfolio Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="card p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Portfolio Value</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Portfolio Value</h3>
+            <button className="btn-secondary text-sm" onClick={refreshSummary} disabled={loading}>{loading ? 'Loading...' : 'Refresh'}</button>
+          </div>
           <div className="text-3xl font-bold text-gray-900 mb-2">${totalCurrentValue.toFixed(2)}</div>
           <div className="flex items-center text-sm">
             <span className="text-gray-600 mr-2">Total P&L:</span>
@@ -143,7 +110,10 @@ const PortfolioSummary = () => {
         </div>
         
         <div className="card p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Today's Performance</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Today's Performance</h3>
+            <button className="btn-secondary text-sm" onClick={refreshSummary} disabled={loading}>{loading ? 'Loading...' : 'Refresh'}</button>
+          </div>
           <div className={`text-3xl font-bold mb-2 ${todayPerformance >= 0 ? 'text-success-600' : 'text-error-600'}`}>
             ${Math.abs(todayPerformance).toFixed(2)}
           </div>
@@ -158,7 +128,10 @@ const PortfolioSummary = () => {
 
       {/* Top Holdings */}
       <div className="card p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Holdings</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Top Holdings</h3>
+          <button className="btn-secondary text-sm" onClick={refreshSummary} disabled={loading}>{loading ? 'Loading...' : 'Refresh'}</button>
+        </div>
         <div className="space-y-4">
           {topHoldings.length > 0 ? (
             topHoldings.map((holding) => (

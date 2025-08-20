@@ -143,9 +143,7 @@ SEQUENCE_LENGTH = 60  # timesteps used for training/prediction
 
 
 def build_and_train_model(symbol, lookback=SEQUENCE_LENGTH, epochs=10):
-    """
-    Fetch data, train LSTM model, save model + scaler.
-    """
+    
     print(f"📈 Training new model for {symbol}...")
 
     df = yf.download(symbol, period="2y")

@@ -12,6 +12,16 @@ export function setTokens({ access, refresh }) {
 export function clearTokens() {
   localStorage.removeItem('access');
   localStorage.removeItem('refresh');
+  // Clear session-scoped cached data when session expires or user logs out
+  try {
+    const PREFIX = 'tt_cache:';
+    const toRemove = [];
+    for (let i = 0; i < sessionStorage.length; i += 1) {
+      const k = sessionStorage.key(i);
+      if (k && k.startsWith(PREFIX)) toRemove.push(k);
+    }
+    toRemove.forEach((k) => sessionStorage.removeItem(k));
+  } catch (_) {}
 }
 
 let alertedUnauthorized = false;

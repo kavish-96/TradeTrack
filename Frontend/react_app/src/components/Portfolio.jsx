@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiGet, apiPost, apiDelete } from '../lib/api';
+import { getSimpleQuoteQueued } from '../lib/marketQueue';
+import { cacheGet, cacheSet } from '../lib/sessionCache';
 
 const Portfolio = () => {
   const [portfolio, setPortfolio] = useState([]);
@@ -24,20 +26,22 @@ const Portfolio = () => {
 
   useEffect(() => { load(); }, []);
 
-  // Fetch current prices for all symbols (sequentially to respect free-tier limits)
+  // Restore last known prices from session cache on mount
   useEffect(() => {
-    const fetchPrices = async () => {
-      const map = {};
-      for (const pos of portfolio) {
-        try {
-          const q = await apiGet(`/api/market/simple-quote?symbol=${encodeURIComponent(pos.symbol)}`);
-          if (q && q.price) map[pos.symbol] = parseFloat(q.price);
-        } catch (_) {}
-      }
-      setPrices(map);
-    };
-    if (portfolio.length) fetchPrices();
-  }, [portfolio]);
+    const cached = cacheGet('portfolio:prices');
+    if (cached) setPrices(cached);
+  }, []);
+
+  // Manual per-stock price load
+  const loadPrice = async (symbol) => {
+    try {
+      const q = await getSimpleQuoteQueued(symbol);
+      const next = { ...prices };
+      if (q && q.price) next[symbol] = parseFloat(q.price);
+      setPrices(next);
+      cacheSet('portfolio:prices', next);
+    } catch (_) {}
+  };
 
   const handleAddPosition = async () => {
     if (!(newPosition.symbol && newPosition.quantity && newPosition.purchasePrice)) return;
@@ -114,7 +118,8 @@ const Portfolio = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{stock.quantity}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${parseFloat(stock.purchase_price).toFixed(2)}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{prices[stock.symbol] != null ? `$${prices[stock.symbol].toFixed(2)}` : '--'}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                    <button onClick={() => loadPrice(stock.symbol)} className="text-primary-600 hover:text-primary-900">Load Price</button>
                     <button onClick={() => removePosition(stock.id)} className="text-error-600 hover:text-error-900">Remove</button>
                   </td>
                 </tr>

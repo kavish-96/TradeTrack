@@ -107,8 +107,8 @@ const News = () => {
       <div className="card p-4 mb-6 bg-blue-50 border-blue-200">
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-          <span className="text-blue-800 font-semibold">Live News Feed</span>
-          <span className="text-blue-600 text-sm">• Updates every 5 minutes</span>
+          <span className="text-blue-800 font-semibold">News Feed</span>
+          {/* <span className="text-blue-600 text-sm">• Updates every 5 minutes</span> */}
         </div>
       </div>
 
@@ -190,7 +190,7 @@ const News = () => {
       </div>
 
       {/* News Integration Notice */}
-      <div className="card p-6 mt-8 bg-blue-50 border-blue-200">
+      {/* <div className="card p-6 mt-8 bg-blue-50 border-blue-200">
         <h3 className="text-lg font-semibold text-blue-900 mb-2">Real-time News Integration</h3>
         <p className="text-blue-800 mb-4">
           This news feed is ready for integration with real-time news APIs like NewsAPI, 
@@ -216,7 +216,7 @@ const News = () => {
             </ul>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {filteredNews.length === 0 && (
         <div className="text-center py-12">
