@@ -48,7 +48,7 @@ const PortfolioSummary = () => {
     }
   }, []);
 
-  // Load from cache on mount; no auto-fetch
+  // Load from cache on mount only; ensure no auto-fetches
   useEffect(() => {
     const cachedPositions = cacheGet('dashboard:portfolio:positions');
     const cachedPrices = cacheGet('dashboard:portfolio:prices');
@@ -98,7 +98,7 @@ const PortfolioSummary = () => {
         <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Portfolio Value</h3>
-            <button className="btn-secondary text-sm" onClick={refreshSummary} disabled={loading}>{loading ? 'Loading...' : 'Refresh'}</button>
+            <button className="btn-secondary text-sm" onClick={async () => { sessionStorage.setItem('allow_market_fetch', '1'); try { await refreshSummary(); } finally { sessionStorage.removeItem('allow_market_fetch'); } }} disabled={loading}>{loading ? 'Loading...' : 'Refresh'}</button>
           </div>
           <div className="text-3xl font-bold text-gray-900 mb-2">${totalCurrentValue.toFixed(2)}</div>
           <div className="flex items-center text-sm">
@@ -112,7 +112,7 @@ const PortfolioSummary = () => {
         <div className="card p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Today's Performance</h3>
-            <button className="btn-secondary text-sm" onClick={refreshSummary} disabled={loading}>{loading ? 'Loading...' : 'Refresh'}</button>
+            <button className="btn-secondary text-sm" onClick={async () => { sessionStorage.setItem('allow_market_fetch', '1'); try { await refreshSummary(); } finally { sessionStorage.removeItem('allow_market_fetch'); } }} disabled={loading}>{loading ? 'Loading...' : 'Refresh'}</button>
           </div>
           <div className={`text-3xl font-bold mb-2 ${todayPerformance >= 0 ? 'text-success-600' : 'text-error-600'}`}>
             ${Math.abs(todayPerformance).toFixed(2)}
@@ -130,7 +130,7 @@ const PortfolioSummary = () => {
       <div className="card p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Top Holdings</h3>
-          <button className="btn-secondary text-sm" onClick={refreshSummary} disabled={loading}>{loading ? 'Loading...' : 'Refresh'}</button>
+          <button className="btn-secondary text-sm" onClick={async () => { sessionStorage.setItem('allow_market_fetch', '1'); try { await refreshSummary(); } finally { sessionStorage.removeItem('allow_market_fetch'); } }} disabled={loading}>{loading ? 'Loading...' : 'Refresh'}</button>
         </div>
         <div className="space-y-4">
           {topHoldings.length > 0 ? (

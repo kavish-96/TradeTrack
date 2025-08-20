@@ -51,7 +51,7 @@ const TrendingStocks = () => {
     }
   }, []);
 
-  // Load from session cache on mount; do not auto-fetch
+  // Load from session cache on mount only; ensure no auto-fetches
   useEffect(() => {
     const cached = cacheGet('dashboard:trending');
     if (cached) setTrendingStocks(cached);
@@ -61,7 +61,7 @@ const TrendingStocks = () => {
     <div className="card p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Trending Stocks</h3>
-        <button className="btn-secondary text-sm" onClick={fetchTrendingStocks} disabled={loading}>
+        <button className="btn-secondary text-sm" onClick={async () => { sessionStorage.setItem('allow_market_fetch', '1'); try { await fetchTrendingStocks(); } finally { sessionStorage.removeItem('allow_market_fetch'); } }} disabled={loading}>
           {loading ? 'Loading...' : (trendingStocks.length ? 'Refresh' : 'Load Data')}
         </button>
       </div>

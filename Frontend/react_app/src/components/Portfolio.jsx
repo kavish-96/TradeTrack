@@ -35,12 +35,16 @@ const Portfolio = () => {
   // Manual per-stock price load
   const loadPrice = async (symbol) => {
     try {
+      sessionStorage.setItem('allow_market_fetch', '1');
       const q = await getSimpleQuoteQueued(symbol);
       const next = { ...prices };
       if (q && q.price) next[symbol] = parseFloat(q.price);
       setPrices(next);
       cacheSet('portfolio:prices', next);
     } catch (_) {}
+    finally {
+      sessionStorage.removeItem('allow_market_fetch');
+    }
   };
 
   const handleAddPosition = async () => {

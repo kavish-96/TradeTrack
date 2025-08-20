@@ -38,6 +38,7 @@ const Watchlist = () => {
   // Manual per-stock price load to reduce API requests
   const loadPrice = async (symbol) => {
     try {
+      sessionStorage.setItem('allow_market_fetch', '1');
       const q = await getSimpleQuoteQueued(symbol);
       const next = {
         ...prices,
@@ -49,6 +50,9 @@ const Watchlist = () => {
       setPrices(next);
       cacheSet('watchlist:prices', next);
     } catch (_) {}
+    finally {
+      sessionStorage.removeItem('allow_market_fetch');
+    }
   };
 
   const removeStock = async (id) => {
@@ -82,12 +86,14 @@ const Watchlist = () => {
     setDetails({ symbol, data: null });
     setDetailsLoading(true);
     try {
+      sessionStorage.setItem('allow_market_fetch', '1');
       const data = await getOverviewQueued(symbol);
       setDetails({ symbol, data });
     } catch (_) {
       setDetails({ symbol, data: { Note: 'Failed to load details (rate limit?)' } });
     } finally {
       setDetailsLoading(false);
+      sessionStorage.removeItem('allow_market_fetch');
     }
   };
 

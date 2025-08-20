@@ -53,7 +53,7 @@ const MarketOverview = () => {
     }
   }, []);
 
-  // Load from session cache on mount; do not auto-fetch
+  // Load from session cache on mount only; ensure no auto-fetches
   useEffect(() => {
     const cached = cacheGet('dashboard:marketOverview');
     if (cached) setIndices(cached);
@@ -63,7 +63,7 @@ const MarketOverview = () => {
     <div className="card p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-gray-900">Market Overview</h2>
-        <button className="btn-secondary text-sm" onClick={fetchMarketData} disabled={loading}>
+        <button className="btn-secondary text-sm" onClick={async () => { sessionStorage.setItem('allow_market_fetch', '1'); try { await fetchMarketData(); } finally { sessionStorage.removeItem('allow_market_fetch'); } }} disabled={loading}>
           {loading ? 'Loading...' : (indices.length ? 'Refresh' : 'Load Data')}
         </button>
       </div>

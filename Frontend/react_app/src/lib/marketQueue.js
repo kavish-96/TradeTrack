@@ -10,10 +10,25 @@ function schedule(task) {
   return run;
 }
 
+function isMarketFetchAllowed() {
+  try {
+    return sessionStorage.getItem('allow_market_fetch') === '1';
+  } catch (_) {
+    return false;
+  }
+}
+
 export function getSimpleQuoteQueued(symbol) {
+  if (!isMarketFetchAllowed()) {
+    // Block unintended auto fetches
+    return Promise.resolve({});
+  }
   return schedule(() => apiGet(`/api/market/simple-quote?symbol=${encodeURIComponent(symbol)}`));
 }
 
 export function getOverviewQueued(symbol) {
+  if (!isMarketFetchAllowed()) {
+    return Promise.resolve({});
+  }
   return schedule(() => apiGet(`/api/market/overview?symbol=${encodeURIComponent(symbol)}`));
 }
