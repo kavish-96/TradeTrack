@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'watchlist',
     'trades',
     'market',
+    'predictor',
 ]
 
 MIDDLEWARE = [

@@ -64,4 +64,9 @@ urlpatterns = [
     path('api/watchlist/', include('watchlist.urls')),
     path('api/trades/', include('trades.urls')),
     path('api/market/', include('market.urls')),
+    path("api/predictor/", include("predictor.urls")),
+    # Predictor ML endpoints
+    path('api/predictor/predict/', __import__('predictor.views').views.PredictView.as_view()),
+    path('api/predictor/retrain/', __import__('predictor.views').views.RetrainView.as_view()),
+    path('api/predictor/model_exists/', __import__('predictor.views').views.ModelExistsView.as_view()),
 ]
