@@ -375,7 +375,7 @@ const Charts = () => {
           },
         ]}
         layout={{
-          width: 1200,
+          width: 1135,
           // autosize: true,
           height: 700,
           title: `${selectedStock} - Last 2 months`,
@@ -527,18 +527,63 @@ const Charts = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Charts & Analysis</h1>
-        <p className="text-gray-600">Analyze stock trends and predictions</p>
+      {/* Enhanced Header Section */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-finance mb-8">
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative px-8 py-12">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-4xl font-bold text-white mb-2">Charts & Analysis</h1>
+                  <p className="text-white/90 text-lg">Analyze stock trends and predictions with advanced analytics</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-6 text-white/80">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-white/60 rounded-full"></div>
+                  <span className="text-sm font-medium">Candlestick charts</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-white/60 rounded-full"></div>
+                  <span className="text-sm font-medium">LSTM predictions</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-white/60 rounded-full"></div>
+                  <span className="text-sm font-medium">Technical analysis</span>
+                </div>
+              </div>
+            </div>
+            <div className="hidden lg:block">
+              <div className="w-32 h-32 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center">
+                <svg className="w-16 h-16 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Stock Search */}
-      <div className="card p-6 mb-8 bg-white shadow rounded-lg">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Stock</h2>
-        <div className="mb-4">
+      <div className="bg-white border border-neutral-200 rounded-lg p-6 mb-8 shadow-sm">
+        <div className="flex items-center space-x-4 mb-4">
+          <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+            <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-semibold text-neutral-900">Select Stock for Analysis</h2>
+        </div>
+        <div className="flex gap-4">
           <input
             type="text"
-            className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring focus:border-blue-500"
+            className="flex-1 px-4 py-3 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200"
             placeholder="Enter stock symbol (e.g. AAPL, TSLA, MSFT)"
             value={search}
             onChange={e => {
@@ -554,7 +599,7 @@ const Charts = () => {
             }}
           />
           <button
-            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+            className="px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50"
             disabled={!search}
             onClick={() => {
               console.log('🔍 [Analyze] button for:', search);
@@ -565,11 +610,11 @@ const Charts = () => {
           </button>
         </div>
         {selectedStock && (
-          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+          <div className="mt-4 p-4 bg-gradient-to-r from-neutral-50 to-neutral-100 rounded-lg border border-neutral-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900">{selectedStock}</h3>
-                <div className="text-3xl font-bold text-gray-900">${getCurrentPrice()}</div>
+                <h3 className="text-2xl font-bold text-neutral-900">{selectedStock}</h3>
+                <div className="text-3xl font-bold text-neutral-900">${getCurrentPrice()}</div>
               </div>
               <div className="text-right">
                 <div className={`text-lg font-semibold ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -581,64 +626,119 @@ const Charts = () => {
         )}
       </div>
 
-      {/* Historical Data Card */}
-      <div className="card mb-8 bg-white shadow rounded-lg">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {selectedStock} - Historical Closing Prices
+      {/* Historical Data Section */}
+      <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm mb-8">
+        <div className="px-6 py-4 border-b border-neutral-200 bg-neutral-50">
+          <h3 className="text-lg font-semibold text-neutral-900">
+            {selectedStock ? `${selectedStock} - Historical Data` : 'Historical Data'}
           </h3>
-          {renderHistoricalChart(historical)}
-          <div className="mt-4 text-sm text-gray-600">* Historical data fetched via Yahoo Finance</div>
+          <p className="text-sm text-neutral-600 mt-1">Candlestick chart showing last 2 months of trading</p>
+        </div>
+        <div className="p-6">
+          <div className="bg-neutral-50 rounded-lg p-4 flex items-center justify-center">
+            {renderHistoricalChart(historical)}
+          </div>
+          <div className="mt-4 text-sm text-neutral-600 flex items-center space-x-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Historical data fetched via Yahoo Finance</span>
+          </div>
         </div>
       </div>
 
-      {/* Price Prediction Card */}
-      <div className="card mb-8 bg-white shadow rounded-lg">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      {/* Price Prediction Section */}
+      <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-neutral-200 bg-neutral-50">
+          <h3 className="text-lg font-semibold text-neutral-900">
             {selectedStock ? `${selectedStock} - Price Prediction` : 'Price Prediction'}
           </h3>
-          
-          <div className="bg-gray-50 rounded-lg mb-4 p-4 flex items-center justify-center">
+          <p className="text-sm text-neutral-600 mt-1">LSTM model predictions for next 7 days</p>
+        </div>
+        <div className="p-6">
+          <div className="bg-neutral-50 rounded-lg p-4 flex items-center justify-center mb-6">
             {predictionLoading ? (
-              <div className="text-gray-500">Loading prediction...</div>
+              <div className="text-center py-8">
+                <div className="inline-flex items-center px-4 py-2 font-semibold leading-6 text-neutral-600">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Loading prediction...
+                </div>
+              </div>
             ) : prediction && prediction.date ? (
               <div className="w-full">{renderBarChart(prediction)}</div>
             ) : (
-              <div className="text-gray-400">No data yet</div>
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-neutral-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-neutral-900 mb-2">No prediction data yet</h3>
+                <p className="text-neutral-600">Select a stock and load prediction to see forecast</p>
+              </div>
             )}
           </div>
 
-
           {selectedStock && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap gap-4">
               {!prediction && !predictionLoading && (
                 <button
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium"
+                  className="px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-200 flex items-center space-x-2"
                   onClick={loadPrediction}
                 >
-                  Load Prediction
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Load Prediction</span>
                 </button>
               )}
               {modelExists && (
                 <button
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg font-medium"
+                  className="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-all duration-200 flex items-center space-x-2"
                   onClick={handleRetrain}
                   disabled={retrainLoading}
                 >
-                  {retrainLoading ? 'Retraining...' : 'Retrain Model'}
+                  {retrainLoading ? (
+                    <>
+                      <svg className="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Retraining...</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      <span>Retrain Model</span>
+                    </>
+                  )}
                 </button>
               )}
             </div>
           )}
 
           {!selectedStock && (
-            <div className="h-64 flex items-center justify-center text-gray-500">
-              Enter a stock symbol above and click Analyze to view predictions.
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-neutral-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-neutral-900 mb-2">Ready to analyze?</h3>
+              <p className="text-neutral-600">Enter a stock symbol above and click Analyze to view predictions</p>
             </div>
           )}
-          <div className="mt-4 text-sm text-gray-600">
-            * Predictions powered by LSTM deep learning model and Yahoo Finance data
+          
+          <div className="mt-6 text-sm text-neutral-600 flex items-center space-x-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Predictions powered by LSTM deep learning model and Yahoo Finance data</span>
           </div>
         </div>
       </div>

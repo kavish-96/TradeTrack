@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, createContext, useContext } from 'react';
 import Navigation from './components/Navigation';
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
@@ -11,9 +11,22 @@ import Charts from './components/Charts';
 import News from './components/News';
 import { getAccessToken, clearTokens } from './lib/api';
 
+// Create context for sidebar state
+const SidebarContext = createContext();
+
+// Custom hook to use sidebar context
+export const useSidebar = () => {
+  const context = useContext(SidebarContext);
+  if (!context) {
+    throw new Error('useSidebar must be used within a SidebarProvider');
+  }
+  return context;
+};
+
 function App() {
   const [currentPage, setCurrentPage] = useState(() => localStorage.getItem('currentPage') || 'login');
   const [isAuthenticated, setIsAuthenticated] = useState(() => !!getAccessToken());
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     // Persist current page
@@ -63,17 +76,25 @@ function App() {
     }
   };
 
+  // Sidebar context value
+  const sidebarContextValue = {
+    sidebarOpen,
+    setSidebarOpen
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {isAuthenticated && (
-        <Navigation 
-          currentPage={currentPage} 
-          setCurrentPage={setCurrentPage}
-          onLogout={handleLogout}
-        />
-      )}
-      {renderPage()}
-    </div>
+    <SidebarContext.Provider value={sidebarContextValue}>
+      <div className="min-h-screen bg-neutral-50">
+        {isAuthenticated && (
+          <Navigation 
+            currentPage={currentPage} 
+            setCurrentPage={setCurrentPage}
+            onLogout={handleLogout}
+          />
+        )}
+        {renderPage()}
+      </div>
+    </SidebarContext.Provider>
   );
 }
 

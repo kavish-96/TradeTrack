@@ -2,9 +2,66 @@ from rest_framework import permissions, views, generics, status
 from rest_framework.response import Response
 from rest_framework.request import Request
 from .serializers import QuoteRequestSerializer, HistoryRequestSerializer
-from .services import get_simple_quote_cached, get_company_overview_cached, search_symbol, fetch_time_series, AlphaRateLimited
+from .services import (
+    get_simple_quote_cached,
+    get_company_overview_cached,
+    search_symbol,
+    fetch_time_series,
+    AlphaRateLimited,
+)
 from watchlist.models import WatchlistItem
 from watchlist.serializers import WatchlistItemSerializer
+
+import yfinance as yf
+
+
+# ✅ Friendly names mapping
+INDEX_NAMES = {
+    "^NSEI": "Nifty 50",
+    "^IXIC": "NASDAQ",
+    "^GSPC": "S&P 500",
+}
+
+
+# Market indices via yfinance
+class MarketIndicesYFView(views.APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        symbols = request.query_params.getlist("symbols")
+        if not symbols:
+            symbols = ["^NSEI", "^IXIC", "^GSPC"]
+
+        result = []
+        for symbol in symbols:
+            try:
+                ticker = yf.Ticker(symbol)
+
+                # fetch last 5 days of history (safe for weekends/holidays)
+                hist = ticker.history(period="5d")
+                if hist.empty or len(hist) < 2:
+                    result.append({"symbol": symbol, "error": "Not enough data"})
+                    continue
+
+                latest = hist["Close"].iloc[-1]
+                prev_close = hist["Close"].iloc[-2]
+
+                change = latest - prev_close
+                change_percent = (change / prev_close) * 100 if prev_close else 0
+
+                result.append({
+                    "symbol": symbol,
+                    "name": INDEX_NAMES.get(symbol, symbol),  # 👈 friendly name
+                    "price": float(latest),
+                    "previous_close": float(prev_close),
+                    "change": float(change),
+                    "change_percent": float(change_percent),
+                })
+
+            except Exception as e:
+                result.append({"symbol": symbol, "error": str(e)})
+
+        return Response(result)
 
 
 class QuoteView(views.APIView):
